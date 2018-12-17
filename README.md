@@ -1,4 +1,4 @@
-# triviabotdevelopment
+# Just a Trivial Bot
 Reddit Trivia Bot development version
 
 I've never used Node before and wanted to make a trivia bot. This is a test version that will be very broken and probably only accessible to me. 
