@@ -1,0 +1,29 @@
+{
+  "name": "triviabot",
+  "version": "0.0.1",
+  "description": "Development version of reddit trivia bot",
+  "main": "app.js",
+  "scripts": {
+    "app": "app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justatrivialbot/triviabotdevelopment.git"
+  },
+  "keywords": [
+    "reddit",
+    "node",
+    "trivia"
+  ],
+  "author": "KSC",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/justatrivialbot/triviabotdevelopment/issues"
+  },
+  "homepage": "https://github.com/justatrivialbot/triviabotdevelopment#readme",
+  "dependencies": {
+    "dotenv": "^6.2.0",
+    "mysql": "^2.16.0",
+    "snoowrap": "^1.15.2"
+  }
+}
