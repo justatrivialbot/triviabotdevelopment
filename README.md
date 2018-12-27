@@ -78,5 +78,6 @@ JSON array is as follows:
  * JSON generator
  * Allow quiz admin to edit their quiz after it creation, e.g. adding HomePost id
  * Methods for bot to report all scores at the end of a quiz
+ * Survey mode? Maybe. Possibly too far out of scope.
  
  If you would like to help out, message /u/JustATrivialBot on Reddit. Tx!
