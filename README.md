@@ -66,18 +66,18 @@ JSON array is as follows:
  * **Incorrect** are the wrong answers for MC questions only.
  * **PV** is point value.
  
- Hopefully I will eventually make a generator for the JSON so everyone can do it.
+ There's a [JSON Generator here](https://justatrivialbot.github.io/triviabotdevelopment/index.html).
  
  # To do
- * Get the bot's karma up so it can send private messages w/o captcha
- * Post new quizzes to the bot's home subreddit so that trivia fans can find them
- * Install a throttle for new quizzes so we don't go crazy
- * Respond to player requests for quizzes
- * Score player responses
- * Bracket pairing
- * JSON generator
- * Allow quiz admin to edit their quiz after it creation, e.g. adding HomePost id
- * Methods for bot to report all scores at the end of a quiz
- * Survey mode? Maybe. Possibly too far out of scope.
+ * [ ] Get the bot's karma up so it can send private messages w/o captcha
+ * [ ] Post new quizzes to the bot's home subreddit so that trivia fans can find them
+ * [ ] Install a throttle for new quizzes so we don't go crazy
+ * [ ] Respond to player requests for quizzes
+ * [ ] Score player responses
+ * [ ] Bracket pairing
+ * [X] JSON generator
+ * [ ] Allow quiz admin to edit their quiz after it creation, e.g. adding HomePost id
+ * [ ] Methods for bot to report all scores at the end of a quiz
+ * [ ] ~~Survey mode? Maybe. Possibly too far out of scope.~~ Yup too far out of scope.
  
  If you would like to help out, message /u/JustATrivialBot on Reddit. Tx!
