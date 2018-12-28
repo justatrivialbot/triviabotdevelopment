@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css?family=PT+Mono');
+
+body {
+	font-family: 'PT Mono', monospace;
+	background-color: #282828;
+	color: #3F3;
+}
+
+form, .result {
+	width: 75%;
+	margin: 0 auto;
+}
+
+form {
+	border: 5px double #3f3;
+}
+
+.result {
+	margin-top: 10px;
+	margin-bottom: 20px;
+	padding: 0 24%;
+}
+
+h2 {
+	margin-left: 10px;
+}
+
+.fieldset {
+	margin-top: 10px;
+		display: flex;
+}
+
+label {
+	min-width: 200px;
+	margin: 10px;
+}
+
+input[type="text"], input[type="datetime-local"], input[type="number"] {
+	border: none;
+	border-bottom: 2px solid #373;
+	flex: 2;
+	background-color: #282828;
+	color: #3F3;
+}
+
+.notes {
+	display: block;
+	margin-left: 220px;
+	font-size: small;
+	font-style:italic;
+	border: 1px dashed #333;
+}
+
+#questionset {
+	border-bottom: 2px dashed #3f3;
+	padding-bottom: 10px;
+}
+
+#addquestion {
+	font-size: 1.5em;
+	margin-left: 220px;
+	border: none;
+	background-color: #282828;
+	color: #3f3;
+}
+
+textarea {
+	width: 75%;
+	margin: 0 auto;
+	background-color: #282828;
+	color: #3f3;
+	border: 5px double #3f3;
+}
+
+a:link{
+	color: #9f9;
+}
+a:visited{
+	color: #3f3;
+}
+
+/* Style the radio button containers */
+.radiocont {
+	display: block;
+	position: relative;
+	padding-left: 70px;
+	margin-bottom: 12px;
+	cursor: pointer;
+	-webkit-user-select: none;
+  	-moz-user-select: none;
+  	-ms-user-select: none;
+  	user-select: none;
+}
+
+/* Hide the default radio button */
+.radiocont input {
+	position: absolute;
+	opacity: 0;
+	cursor: pointer;
+	height: 0;
+	width: 0;
+}
+
+/* custom button */
+.oldRadio {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 25px;
+	width: 60px;
+}
+
+.oldRadio:after {
+	content: "[\00a0\00a0\00a0]";
+	position: absolute;
+	color: #3F3;
+}
+
+.radiocont:hover input ~ .oldRadio {
+	background-color: #ccc;
+}
+
+.radiocont input:checked ~ .oldRadio:after {
+	content: "[ X ]";
+}

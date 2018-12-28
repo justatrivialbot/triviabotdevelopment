@@ -1,0 +1,110 @@
+<html>
+<head>
+<title>JustATrivialBot Reddit Quiz Generator</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="generator.js"></script>
+<link href="generator.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=PT+Mono" rel="stylesheet">
+</head>
+<body>
+	<h1>JustATrivialBot Reddit Quiz Generator</h1>
+	<p>Fill in the form to generate your JSON snippet. Then copy and
+		paste the result into a private message to /u/JustATrivialBot on
+		Reddit to create your quiz.</p>
+	<form id="generatorform" action="">
+		<div id="metadata">
+			<h2>Metadata</h2>
+			<div class="fieldset">
+				<label for="subreddit">Subreddit:</label>
+				<input type="text" name="Subreddit" id="subreddit">
+			</div>
+			<div class="notes">The Subreddit that is hosting this quiz. No /r/ required. Default: TrivialBotHQ.</div>		
+			<div class="fieldset">
+				<label for="start">Start Date:</label>
+				<input type="datetime-local" name="Start" id="start">
+			</div>
+			<div class="notes">UTC please. To calculate UTC, <span id="offset"></span> your computer's time. Default: Immediate Start.</div>		
+			<div class="fieldset">
+				<label for="end">End Date:</label>
+				<input type="datetime-local" name="End" id="end">
+			</div>
+			<div class="notes">UTC please. Default: 5 days from Start.</div>
+			<div class="fieldset">
+				<label for="HomePost">Home Post ID:</label>
+				<input type="text" name="HomePost" id="HomePost">
+			</div>
+			<div class="notes">If you want the bot to comment on a specific post, put the post ID here. 
+			You can find it in the URL of the post. If the quiz will be in a private subreddit, don't forget 
+			to give the bot posting rights! Don't worry, you can edit it later if you don't have an ID yet.<br>
+			Example: The ID of <a href="https://www.reddit.com/r/IAmA/comments/3c0iw2/ama_request_victoria_exama_mod/" 
+			target="_blank">this AMA</a> is 3c0iw2.</div>
+			<div class="fieldset">
+				<label for="Type">Game Type:</label>
+				<label class="radiocont" for="FFA"><input type="radio" name="Type" id="FFA" value="FFA" checked><span class="oldRadio"></span> Free For All (default)</label>
+				<label class="radiocont" for="Bracket"><input type="radio" name="Type" id="Bracket" value="Bracket"><span class="oldRadio"></span> Bracket 
+				(coming soon)</label>
+			</div>
+			<div class="fieldset">
+				<label for="Randomize">Question Order:</label>
+				<label class="radiocont" for="randomYes"><input type="radio" name="Randomize" id="randomYes" value="Yes" checked><span class="oldRadio"></span> Randomize per Player (default)</label>
+				<label class="radiocont" for="randomNo"><input type="radio" name="Randomize" id="randomNo" value="No"><span class="oldRadio"></span> Always As Written</label>
+			</div>
+			<div class="fieldset">
+				<label for="Scoring">Scoring:</label>
+				<label class="radiocont" for="Timed"><input type="radio" name="Scoring" id="Timed" value="Timed"><span class="oldRadio"></span> Timed</label>
+				<label class="radiocont" for="Flat"><input type="radio" name="Scoring" id="Flat" value="Flat" checked><span class="oldRadio"></span> Flat (default)</label>
+			</div>
+			<div class="fieldset tpq">
+				<label for="TPQ">Time Per Question:</label>
+				<input type="number" name="TPQ" id="tpq">
+			</div>
+			<div class="notes tpq">In minutes. Default is 5. If you don't want players looking up their answers online I suggest you make this short. If you are including video in your quiz allow time to play the video!</div>
+			<div class="fieldset tpq">
+				<label for="TimeDeduction">Time Deduction:</label>
+				<input type="number" name="TimeDeduction" id="TimeDeduction">
+			</div>
+			<div class="notes tpq">Points deducted per minute for exceeding TPQ. Default is 2.</div>
+		</div>
+		<div id="questions">
+			<h2>Questions</h2>
+			<div id="questionset" class="questionsets">
+				<div class="fieldset">
+					<label for="qType">Type:</label>
+					<label class="radiocont" for="FITB"><input type="radio" name="qType" id="FITB" value="FITB" checked><span class="oldRadio"></span> Fill in the Blank 
+					(Default)</label>
+					<label class="radiocont" for="TF"><input type="radio" name="qType" id="TF" value="TF"><span class="oldRadio"></span> True/False</label>
+					<label class="radiocont" for="MC"><input type="radio" name="qType" id="MC" value="MC"><span class="oldRadio"></span> Multiple Choice</label>
+				</div>
+				<div class="fieldset">
+					<label for="qText">Question Text:</label>
+					<input type="text" name="qText" id="qText" maxLength="255">
+				</div>
+				<div class="notes">255 character limit please. For FITB questions use a single underscore (_) to indicate your blank and the bot will escape it to comply with Reddit formatting. One blank only. For T/F questions the bot will automatically prepend "True or False:" to your text.</div>
+				<div class="fieldset">
+					<label for="Correct">Correct Answer:</label>
+					<input type="text" name="Correct" id="Correct" maxLength="255">
+				</div>
+				<div class="notes">255 character limit. For T/F questions type T or F. By default scoring is case insensitive. If case matters to you, preface your correct answer with {CS}.</div>
+				<div class="fieldset">
+					<label for="Incorrect">Incorrect Answers:</label>
+					<input type="text" name="Incorrect" id="Incorrect" maxLength="255">
+				</div>
+				<div class="notes">255 characters limit. For Multiple Choice only. Comma separated list. Leading and trailing spaces are trimmed.<br>
+				Example: Kevin,Mitzi,George</div>
+				<div class="fieldset">
+					<label for="PV">Point Value:</label>
+					<input type="number" name="PV" id="PV">
+				</div>
+				<div class="notes">For timed quizzes the bot does some basic math to make sure it's possible to 
+				get a positive score in a reasonable time. If you are doing a timed quiz make sure your Time Deduction 
+				is reasonable. Default: 10</div>
+			</div>
+		</div>
+			<button id="addQuestion" type="button">[ Add ]</button>
+	</form>
+	<div class="result">
+		<label for="snippet">Your Result (Updates as you complete the form. Click to select all.):</label><br>
+		<textarea name="snippet" id="snippet" rows="6"></textarea>
+	</div>
+</body>
+</html>
