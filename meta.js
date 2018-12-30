@@ -308,6 +308,8 @@ function generateNewQuizConfirmation(qID) {
 			replyText += '\n\nThis quiz has ' + totalQuestions + ' questions. Below you will find an example of what your';
 			replyText += ' players will receive.';
 			replyText += '\n\n~~~\n\n';
+			
+			// everything from here on duplicates the formatQuestions method. figure out a way to simplify.
 			replyText += 'Thank you for participating in /u/' + administrator + '\'s quiz! Here are your questions. To submit your answers,';
 			replyText += ' reply to this message with your answers in the same order as the questions, in a numbered list.\n\n';
 			// loop through the questions
