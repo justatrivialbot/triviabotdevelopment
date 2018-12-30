@@ -74,11 +74,10 @@ JSON array is as follows:
  * [ ] Check that generated JSON is proced properly.
  * [ ] Edit Quiz method and post format.
  * [ ] Admin commands: Pause, Resume, Edit, Transfer, Scorecheck, Abort.
- * [ ] Send quizzes to players.
- * [ ] Score player responses.
+ * [X] Send quizzes to players.
+ * [X] Score player responses.
  * [ ] Post new quizzes to the bot's home subreddit so that trivia fans can find them.
  * [ ] Install a throttle for new quizzes so we don't hit rate limit.
- * [ ] Respond to player requests for quizzes.
  * [ ] Bracket pairing.
  * [X] JSON generator.
  * [ ] Allow quiz admin to edit their quiz after it creation, e.g. adding HomePost id.
