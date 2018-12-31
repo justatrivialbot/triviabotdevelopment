@@ -52,7 +52,8 @@ $(document).ready(function() {
 			if ($(this).find('input[name="qType"]:checked').val()=="MC") {
 				sText += "\n\t\t\"Incorrect\": \"" + $(this).find('input[name=Incorrect]').val() + "\",";
 			}
-			sText += "\n\t\t\"PV\": \"" + $(this).find('input[name=PV]').val() + "\""; // last item, no comma
+			sText += "\n\t\t\"PV\": \"" + $(this).find('input[name=PV]').val() + "\",";
+			sText += "\n\t\t\"qNo\": \"" + $(this).find('input[name=qNo]').val() + "\""; // last item, no comma
 			sText += "\n\t},"
 		});
 		
