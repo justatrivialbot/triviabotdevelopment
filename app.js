@@ -39,7 +39,7 @@ function checkMail() {
 	r.getUnreadMessages({options:{filter:"messages", limit:1}}).then(function(result){
 		for (var i = 0; i < result.length; i++) {
 			msgID = result[i].id;
-			console.log(result[i]);
+			//console.log(result[i]);
 			processMessage(msgID);
 		}
 	});
@@ -57,18 +57,7 @@ function parseData(data) {
 	if (subject.substring(0,8) == "NEW QUIZ") {
 
     	// in the next line you can delete the last 3 replaces once you have a clean message to work from. 
-    	cleanedBody = body.replace(/\\n/g, "\\n")  
-        .replace(/\\'/g, "\\'")
-        .replace(/\\"/g, '\\"')
-        .replace(/\\&/g, "\\&")
-        .replace(/\\r/g, "\\r")
-        .replace(/\\t/g, "\\t")
-        .replace(/\\b/g, "\\b")
-        .replace(/\\f/g, "\\f");
-    	
-    	cleanedBody = "["+cleanedBody+"]"; // you can delete this too.
-    	
-    	bodyObj = JSON.parse(cleanedBody);
+    	bodyObj = cleanJSON(body); // returns a JSON string
     	
     	//console.log(authorName);
     	//console.log(cleanedBody);
@@ -77,7 +66,7 @@ function parseData(data) {
     	//verify that all criteria are correct
     	// testdata and createQuiz methods in meta.js
     	if (meta.testdata(bodyObj[0])) {
-    		if (bodyObj[0].ID == "NULL") {
+    		if (bodyObj.ID == "NULL") {
     			meta.createQuiz(authorName,bodyObj[0]);
     			r.markMessagesAsRead([msgID]);
     		}
@@ -103,8 +92,34 @@ function parseData(data) {
 		quiz.scoreQuestions(qID,authorName,msgID,data.body,data.created_utc);
 		r.markMessagesAsRead([msgID]);
 	}
+	
+	if (subject.substring(0,4) == "EDIT") { // edit a quiz
+		console.log("Let's edit a quiz!");
+		// get the ID. subject should be EDIT [ID]
+		var subjectParts = subject.split(" ");
+		var qID = subjectParts[1];
+		bodyObj = cleanJSON(data.body);
+		meta.editQuiz(qID,authorName,msgID,bodyObj);
+		r.markMessagesAsRead([msgID]);
+	}
 	else {
 		console.log(subject);
 	}
 	
 } // end parseData
+
+function cleanJSON(body) {
+	cleanedBody = body.replace(/\\n/g, "\\n")  
+    .replace(/\\'/g, "\\'")
+    .replace(/\\"/g, '\\"')
+    .replace(/\\&/g, "\\&")
+    .replace(/\\r/g, "\\r")
+    .replace(/\\t/g, "\\t")
+    .replace(/\\b/g, "\\b")
+    .replace(/\\f/g, "\\f");
+	
+	cleanedBody = "["+cleanedBody+"]"; // you can delete this too.
+	
+	bodyObj = JSON.parse(cleanedBody);
+	return bodyObj[0];
+}

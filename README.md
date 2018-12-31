@@ -72,8 +72,8 @@ JSON array is as follows:
  * [X] Get the bot's karma up so it can send private messages w/o captcha
  * [X] Send confirmations to quiz admins on quiz creation.
  * [ ] Check that generated JSON is proced properly.
- * [ ] Edit Quiz method and post format.
- * [ ] Admin commands: Pause, Resume, Edit, Transfer, Scorecheck, Abort.
+ * [X] Edit Quiz method and post format.
+ * [ ] Admin commands: ~~Pause, Resume~~, Edit (Done), Transfer, Scorecheck, Abort.
  * [X] Send quizzes to players.
  * [X] Score player responses.
  * [ ] Post new quizzes to the bot's home subreddit so that trivia fans can find them.

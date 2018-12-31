@@ -11,7 +11,8 @@ const r = new Snoowrap({
 });
 
 var mysql = require ('mysql');  
-var dbcon = mysql.createConnection({
+var dbcon = mysql.createPool({
+	connectionLimit: 10,
 	host: process.env.DB_HOST,
 	user: process.env.DB_USER,
 	password: process.env.DB_PASS,
@@ -172,12 +173,6 @@ module.exports = {    // new quiz creation
     	var insertQuery = "INSERT INTO quizzes SET ?";
 //    	console.log(insertQuery);
         
-    	
-    	dbcon.connect(function(err) {
-    		if (err) throw err;
-    		console.log('Connected!');
-    	})
-    	
     	dbcon.query(insertQuery, data, function (err, result) {
     		if (err) throw err;
     		quizID = result.insertId;
@@ -212,7 +207,8 @@ module.exports = {    // new quiz creation
 	            			question_text: qText,
 	            			correct_answer: correctAnswer,
 	            			incorrect_answers: incorrectAnswers,
-	            			point_value: pointValue
+	            			point_value: pointValue,
+	            			question_no: i+1
 	           		};
 	           		var questionQuery = "INSERT INTO questions SET ?";
 	        		console.log(qData);
@@ -228,13 +224,155 @@ module.exports = {    // new quiz creation
     	}); // end queries
     	
     
-    } // end function
+    }, // end function createQuiz
+    
+    editQuiz: function(qID,authorName,msgID,body) {
+    	// console.log(body);
+    	// get the quiz data
+    	var replyText = "";
+    	var quizQuery = "SELECT administrator, start_time, end_time FROM quizzes WHERE id_quizzes = ?";
+    	var curTime = generateStart();
+    	//console.log(qID);
+    	   	
+    	dbcon.query(quizQuery, [qID], function(err, result) {
+    		if (err) throw err;
+        	// verify if the author is the admin
+    		if (authorName != result[0].administrator) {
+    			replyText += "You are not the administrator of that quiz so you cannot make changes.\n"
+    		} else if (result[0].end_time < curTime) {
+    			replyText += "That quiz has already ended. Edit was not performed."
+    		} else if (result[0].start_time < curTime) {
+    			replyText += "That quiz has already started so you cannot make changes. Please pause it first and then try your edit again.\n"
+    		} else { // make the edits
+    			var data = [];
+    			// set up meta edits
+    			var metaQuery = "UPDATE quizzes SET ";
+    	    	replyText += 'Quiz data updated successfully.';
+    			if (body.Subreddit != null) {
+    				data.push(body.Subreddit);
+    				metaQuery += "subreddit = ?, ";
+    			}
+    			
+    			if (body.Start != null) {
+    				data.push(body.Start.replace('T'," ") + ":00");
+    				metaQuery += "start_time = ?, ";
+    			}
+    			
+    			if (body.End != null) {
+    				data.push(body.End.replace('T'," ") + ":00");
+    				metaQuery += "end_time = ?, ";
+    			}
+    			
+    			if (body.Scoring != null) {
+    				data.push(body.Scoring.toUpperCase());
+    				metaQuery += "scoring = ?, ";
+    			}
+    			
+    			if (body.TPQ != null) {
+    				data.push(body.TPQ);
+    				metaQuery += "time_per_question = ?, ";
+    			}
+    			
+    			if (body.TimeDeduction != null) {
+    				data.push(body.TimeDeduction);
+    				metaQuery += "time_deduction = ?, ";
+    			}
+    			
+    			if (body.Type != null) {
+    				data.push(body.Type.toUpperCase());
+    				metaQuery += "game_type = ?, ";
+    			}
+    			
+    			if (body.Randomize != null) {
+    				data.push(body.Randomize.substring(0,1).toUpperCase());
+    				metaQuery += "randomize = ?, ";
+    			}
+    			
+    			if (body.HomePost != null) {
+    				data.push(body.HomePost);
+    				metaQuery += "home_post_id = ?, "
+    			}
+    			
+    			metaQuery = metaQuery.substring(0, metaQuery.length-2);
+    			
+    			metaQuery += " WHERE id_quizzes = ?";
+    			data.push(qID);
+    			
+    			//console.log(data);
+    			//console.log(metaQuery);
+    			if (data.length > 0) {
+    		    	
+    				var query = dbcon.query(metaQuery, data, function(err, result){
+    					//console.log(query.sql);
+    					if (err) throw err;
+    					
+    				}) // end meta updating
+    			} // end meta query
+    			
+    			// that's all the meta fields. now for the questions.
+    			if (body.questions.length > 0) { // make sure we have them.
+    				var qData = [];
+    				var qQuery;
+    				for (var i = 0; i < body.questions.length; i++) {
+    					qData = []; // empty the array
+        				qQuery = "UPDATE questions SET ";
+    					
+    					if (body.questions[i].Type != null) {
+    						qData.push(body.questions[i].Type);
+    						qQuery += "question_type = ?, ";
+    					}
+    					if (body.questions[i].Text != null) {
+    						qData.push(body.questions[i].Text);
+    						qQuery += "question_text = ?, ";
+    					}
+    					if (body.questions[i].Correct != null) {
+    						qData.push(body.questions[i].Correct);
+    						qQuery += "correct_answer = ?, ";
+    					}
+    					if (body.questions[i].Incorrect != null) {
+    						qData.push(body.questions[i].Incorrect);
+    						qQuery += "incorrect_answers = ?, ";
+    					}
+    					if (body.questions[i].PV != null) {
+    						qData.push(body.questions[i].PV);
+    						qQuery += "point_value = ?, ";
+    					}
+    					
+    					// trim off the last comma and space
+    					qQuery = qQuery.substring(0, qQuery.length-2);
+    					qQuery += " WHERE id_quizzes = ?";
+    					qData.push(qID);
+    					qQuery += " AND question_no = ?";
+    					qData.push(body.questions[i].qNo);
+    					
+    					//console.log(qQuery);
+    					//console.log(qData);
+
+    					
+    					dbcon.query(qQuery, qData, function(err, result) {
+    						if (err) throw err;
+    					});
+    				} // end for loop
+
+    			} // end question updating
+    			
+    		} // end edit quiz logic
+    		console.log(replyText);
+    		console.log(msgID);
+    		r.getMessage(msgID).reply(replyText);
+    		
+    	}); // end quizQuery
+    	
+		// compose and send the reply.
+
+    	
+    } // end function editQuiz
     
 }
 
 function generateStart() {
 	var date = new Date().toJSON().slice(0,19).replace('T'," ");
-	console.log(date);
+	//console.log(date);
 	return date;
 }
 
@@ -243,7 +381,7 @@ function generateEnd() {
 	dt.setDate(dt.getDate() + 5);
 	var newdate = dt.toISOString().slice(0,19).replace('T'," ");
 	
-	console.log(newdate);
+	//console.log(newdate);
 	return newdate;
 } 
 
@@ -251,6 +389,7 @@ function generateNewQuizConfirmation(qID) {
 	// get the meta data and the questions to go with the ID
 	var metaQuery = "SELECT * from quizzes, questions WHERE quizzes.id_quizzes = ? AND quizzes.id_quizzes = questions.id_quizzes";
 	//errorMsg = "Hey this is a test error!";
+	
 	dbcon.query(metaQuery, qID, function (err, result) {
 		if (err) throw err;
 		// format our reply.
@@ -350,7 +489,6 @@ function generateNewQuizConfirmation(qID) {
 		console.log(replyText);
 	}) // end dbcon
 	
-	dbcon.end();
 }
 
 function shuffle(a) {
