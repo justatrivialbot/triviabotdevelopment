@@ -54,7 +54,9 @@ function parseData(data) {
 	body = data.body;
 	subject = data.subject.toUpperCase();
 	
-	if (subject.substring(0,8) == "NEW QUIZ") {
+	// available commands: !NEW QUIZ, !QUIZ ME, !EDIT, !TRANSFER, !SCORES, !ABORT
+	
+	if (subject.substring(0,9) == "!NEW QUIZ") {
 
     	// in the next line you can delete the last 3 replaces once you have a clean message to work from. 
     	bodyObj = cleanJSON(body); // returns a JSON string
@@ -75,7 +77,7 @@ function parseData(data) {
     	}
 	} // end new quiz process
 	
-	if (subject.substring(0,7) == "QUIZ ME") { // Let's send out a quiz! 
+	if (subject.substring(0,8) == "!QUIZ ME") { // Let's send out a quiz! 
 		console.log("Let's send out a quiz!");
 		// get the ID. the subject should be Quiz Me [ID]
 		var subjectParts = subject.split(" ");
@@ -84,7 +86,7 @@ function parseData(data) {
 		r.markMessagesAsRead([msgID]);
 	} 
 	
-	if (subject.substring(0,11) == "RE: QUIZ ME") { // Let's score a quiz.
+	if (subject.substring(0,12) == "RE: !QUIZ ME") { // Let's score a quiz.
 		console.log("Let's score a quiz!");
 		// get the ID. the subject should be Quiz Me [ID]
 		var subjectParts = subject.split(" ");
@@ -93,13 +95,38 @@ function parseData(data) {
 		r.markMessagesAsRead([msgID]);
 	}
 	
-	if (subject.substring(0,4) == "EDIT") { // edit a quiz
+	if (subject.substring(0,5) == "!EDIT") { // edit a quiz
 		console.log("Let's edit a quiz!");
 		// get the ID. subject should be EDIT [ID]
 		var subjectParts = subject.split(" ");
 		var qID = subjectParts[1];
 		bodyObj = cleanJSON(data.body);
 		meta.editQuiz(qID,authorName,msgID,bodyObj);
+		r.markMessagesAsRead([msgID]);
+	}
+	
+	if (subject.substring(0,9) == '!TRANSFER') { // transfer administrator
+		// The message will just have the new administrator in the body text
+		console.log("Let's transfer ownership,");
+		var subjectParts = subject.split(" ");
+		var qID = subjectParts[1];
+		meta.transferQuiz(qID,authorName,msgID,data.body);
+		r.markMessagesAsRead([msgID]);
+	}
+	
+	if (subject.substring(0,6) == '!ABORT') { // abort quiz
+		console.log("Let's abort this quiz!");
+		var subjectParts = subject.split(" ");
+		var qID = subjectParts[1];
+		meta.abortQuiz(qID,authorName,msgID);
+		r.markMessagesAsRead([msgID]);
+	}
+	
+	if (subject.substring(0,7) == '!SCORES') { // retrieve scores to date
+		console.log("Let's retrieve the scores.");
+		var subjectParts = subject.split(" ");
+		var qID = subjectParts[1];
+		meta.scoreCheck(qID,authorName,msgID);
 		r.markMessagesAsRead([msgID]);
 	}
 	else {

@@ -11,8 +11,7 @@ const r = new Snoowrap({
 });
 
 var mysql = require ('mysql');  
-var dbcon = mysql.createPool({
-	connectionLimit: 10,
+var dbcon = mysql.createConnection({
 	host: process.env.DB_HOST,
 	user: process.env.DB_USER,
 	password: process.env.DB_PASS,
@@ -172,7 +171,7 @@ module.exports = {    // new quiz creation
     	// insert the quiz data, get the id, and then insert the quesion dat
     	var insertQuery = "INSERT INTO quizzes SET ?";
 //    	console.log(insertQuery);
-        
+    	
     	dbcon.query(insertQuery, data, function (err, result) {
     		if (err) throw err;
     		quizID = result.insertId;
@@ -238,16 +237,22 @@ module.exports = {    // new quiz creation
     		if (err) throw err;
         	// verify if the author is the admin
     		if (authorName != result[0].administrator) {
-    			replyText += "You are not the administrator of that quiz so you cannot make changes.\n"
+    			replyText += "You are not the administrator of that quiz so you cannot make changes. Request aborted.\n\n";
+    			r.getMessage(msgID).reply(replyText);
+    			return true;
     		} else if (result[0].end_time < curTime) {
-    			replyText += "That quiz has already ended. Edit was not performed."
+    			replyText += "That quiz has already ended. Request aborted.\n\n";
+    			r.getMessage(msgID).reply(replyText);
+    			return true;
     		} else if (result[0].start_time < curTime) {
-    			replyText += "That quiz has already started so you cannot make changes. Please pause it first and then try your edit again.\n"
+    			replyText += "That quiz has already started so you cannot make changes. Request aborted.\n\n";
+    			r.getMessage(msgID).reply(replyText);
+    			return true;
     		} else { // make the edits
     			var data = [];
     			// set up meta edits
     			var metaQuery = "UPDATE quizzes SET ";
-    	    	replyText += 'Quiz data updated successfully.';
+    	    	replyText += 'Quiz data updated successfully. ';
     			if (body.Subreddit != null) {
     				data.push(body.Subreddit);
     				metaQuery += "subreddit = ?, ";
@@ -356,18 +361,118 @@ module.exports = {    // new quiz creation
 
     			} // end question updating
     			
+    			r.getMessage(msgID).reply(replyText);
+    			return true;
+    			
     		} // end edit quiz logic
-    		console.log(replyText);
-    		console.log(msgID);
-    		r.getMessage(msgID).reply(replyText);
     		
     	}); // end quizQuery
     	
-		// compose and send the reply.
-
-    	
-    } // end function editQuiz
+    }, // end function editQuiz
     
+    transferQuiz: function(qID,authorName,msgID,body) {
+    	// verify that the sender is the administrator and that the quiz is running.
+    	// also verify that the chosen administrator is an active Redditor.
+    	var replyText = "";
+    	var curTime = generateStart();
+    	var tempFake = 'hmhmhmhmhmhmhmhmhmh';
+    	r.checkUsernameAvailability(body).then(function(result){
+    		if (result == true) {
+    			console.log("User does not exist");
+    			replyText += "Designated new admin is not a valid reddit account. Terminating process.";
+    			r.getMessage(msgID).reply(replyText);
+    			return true;
+    		} else {
+    			console.log("User exists");
+    			replyText += "Designated new admin is a valid reddit account. Proceeding.\n\n";
+    			var quizQuery = "SELECT administrator, start_time, end_time FROM quizzes WHERE id_quizzes = ?";
+    	    	dbcon.query(quizQuery, [qID], function(err, result) {
+    	    		if (err) throw err;
+    	        	// verify if the author is the admin
+    	    		if (authorName != result[0].administrator) {
+    	    			replyText += "You are not the administrator of that quiz so you cannot make changes. Transfer aborted.\n\n";
+    	    			r.getMessage(msgID).reply(replyText);
+    	    			return true;
+    	    		} else if (result[0].end_time < curTime) {
+    	    			replyText += "That quiz has already ended. Transfer aborted.\n\n";
+    	    			r.getMessage(msgID).reply(replyText);
+    	    			return true;
+    	    		} else if (result[0].start_time < curTime) {
+    	    			replyText += "That quiz has already started so you cannot make changes. Transfer aborted.\n\n";
+    	    			r.getMessage(msgID).reply(replyText);
+    	    			return true;
+    	    		} else { // make the edits
+    	    			console.log("No errors, proceeding with transfer");
+    	    			transferQuery = "UPDATE quizzes SET administrator = ? WHERE id_quizzes = ?";
+    	    			dbcon.query(transferQuery, [body, qID], function(err, result) {
+    	    				if (err) throw err;
+    	    				replyText += "Transfer complete.";
+    	    				r.getMessage(msgID).reply(replyText);
+    	    				return true;
+    	    			}); // end transferQuery
+    	    		}
+    	    	}); // end quizQuery
+    		}
+    		
+    	});
+    	
+    }, // end function transferQuiz
+    
+    abortQuiz: function(qID,authorName,msgID) {
+    	var replyText = "";
+    	var quizQuery = "SELECT administrator, start_time, end_time FROM quizzes WHERE id_quizzes = ?";
+    	var curTime = generateStart();
+    	//console.log(qID);
+    	   	
+    	dbcon.query(quizQuery, [qID], function(err, result) {
+    		if (err) throw err;
+        	// verify if the author is the admin
+    		if (authorName != result[0].administrator) {
+    			replyText += "You are not the administrator of that quiz so you cannot make changes. Request aborted.\n\n";
+    			r.getMessage(msgID).reply(replyText);
+    			return true;
+    		} else if (result[0].end_time < curTime) {
+    			replyText += "That quiz has already ended. Request aborted.\n\n";
+    			r.getMessage(msgID).reply(replyText);
+    			return true;
+    		} else { // make the edits
+    			// set the start time and end time to now.
+    			queryAbort = "UPDATE quizzes SET start_time = ?, end_time = ? WHERE id_quizzes = ?";
+    			dbcon.query(queryAbort,[curTime,curTime,qID], function(err,result) {
+    				if (err) throw err;
+    				replyText +="Quiz aborted successfully.";
+    				r.getMessage(msgID).reply(replyText);
+    			});
+    		}
+    	}); // end quizQuery
+    }, // end abortQuiz
+    
+    scoreCheck: function(qID,authorName,msgID) {
+    	// this is a unique command as any redditor can use it, not just quiz admins.
+    	var scoreQuery = "SELECT reddit_username, score, time_sent, time_received FROM scores WHERE id_quizzes = ? ORDER BY score DESC";
+    	var curTime = generateStart();
+    	//console.log(qID);
+    	   	
+    	dbcon.query(scoreQuery, [qID], function(err, result) {
+    		dbcon.end();
+    		if (err) throw err;
+        	var replyText = "**Scores for quiz #" + qID + "**\n\n";
+        	replyText += "Player | Score | Time (min)\n:--|:--|:--\n"
+        	var j = 1;
+        	var timeSent, timeReceived, timeElapsed;
+    		for (var i = 0; i < result.length; i++) {
+    			timeSent = new Date(result[i].time_sent).getTime() / 1000 ; // convert to seconds
+    			timeReceived = new Date(result[i].time_received).getTime() / 1000 ; // convert to seconds
+    			timeElapsed = (timeReceived - timeSent) / 60; // convert to minutes
+    			replyText += j + ") " + result[i].reddit_username + "|" + result[i].score + "|" + Math.round(timeElapsed) + "\n";
+    			j++;
+    		} // end forloop
+    		console.log(replyText);
+    		r.getMessage(msgID).reply(replyText);
+    	}); // end scoreQuery
+    	
+    } // end scoreCheck
+
 }
 
 function generateStart() {
