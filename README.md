@@ -76,6 +76,7 @@ JSON array is as follows:
  * [X] Meta commands: ~~Pause, Resume~~, Edit, Transfer, Scores, Abort.
  * [X] Send quizzes to players.
  * [X] Score player responses.
+ * [ ] Tripcodes for Scores.
  * [ ] Post new quizzes to the bot's home subreddit so that trivia fans can find them.
  * [ ] Install a throttle for new quizzes so we don't hit rate limit.
  * [ ] Bracket pairing.
