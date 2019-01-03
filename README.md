@@ -16,37 +16,50 @@ The bot can now pull private messages containing a specific JSON array into a my
 JSON array is as follows: 
 
 ```
-[{
-  "ID": "NULL",
-  "Subreddit": "Your Subreddit here",
-  "Start": "2018-12-25 00:00:00",
-  "End": "2018-12-28 00:00:00",
-  "Scoring": "Timed",
-  "TPQ": 5,
-  "TimeDeduction": 2,
-  "Type": "FFA",
-  "HomePost": ""NULL"",
-  "Randomize": "Y",
-  "questions" : [{
-          "Type": "FITB",
-          "Text": "What is 2+2?",
-          "Correct": 4,
-          "PV": 5
-        },
-  {
-    "Type": "TF",
-    "Text": "Is the Pope Catholic?",
-    "Correct": "T",
-    "PV": 5
-  },
-  {
-    "Type": "MC",
-    "Text": "What is the name of the Reddit mascot?",
-    "Correct": "Snoo",
-    "Incorrect": "Kevin,Mitzi,Lee",
-    "PV": 5
-  }]
-}]
+{
+	"Subreddit": "TrivialBotHQ",
+	"Start": "2019-01-03T00:00",
+	"End": "2019-01-13T00:00",
+	"HomePost": "aba3do",
+	"Type": "FFA",
+	"Randomize": "N",
+	"ScoreViz": "Players",
+	"Scoring": "Timed",
+	"TPQ": "5",
+	"TimeDeduction": "1",
+	"questions" : [{
+		"Type": "FITB",
+		"Text": "Answer Foo",
+		"Correct": "Foo",
+		"PV": "20",
+		"qNo": ""
+	},{
+		"Type": "TF",
+		"Text": "Answer true",
+		"Correct": "true",
+		"PV": "20",
+		"qNo": ""
+	},{
+		"Type": "MC",
+		"Text": "Answer Blue",
+		"Correct": "Blue",
+		"Incorrect": "red,green,yellow",
+		"PV": "20",
+		"qNo": ""
+	},{
+		"Type": "FITB",
+		"Text": "What is the capital of Assyria?",
+		"Correct": "Assur",
+		"PV": "20",
+		"qNo": ""
+	},{
+		"Type": "TF",
+		"Text": "Answer false",
+		"Correct": "false",
+		"PV": "20",
+		"qNo": ""
+	}]
+}
 ```
 
 # Array explained
@@ -71,14 +84,15 @@ JSON array is as follows:
  # To do
  * [X] Get the bot's karma up so it can send private messages w/o captcha
  * [X] Send confirmations to quiz admins on quiz creation.
- * [ ] Check that generated JSON is proced properly.
+ * [X] Check that generated JSON is proced properly.
  * [X] Edit Quiz method and post format.
  * [X] Meta commands: ~~Pause, Resume~~, Edit, Transfer, Scores, Abort.
  * [X] Send quizzes to players.
  * [X] Score player responses.
- * [ ] Tripcodes for Scores.
+ * [X] Permissions for !Scores command.
+ * [X] Prevent multiple attempts at the same quiz from same player.
  * [ ] Post new quizzes to the bot's home subreddit so that trivia fans can find them.
- * [ ] Install a throttle for new quizzes so we don't hit rate limit.
+ * [X] Install a throttle for new quizzes so we don't hit rate limit.
  * [ ] Bracket pairing.
  * [X] JSON generator.
  * [X] Allow quiz admin to edit their quiz after it creation, e.g. adding HomePost id.

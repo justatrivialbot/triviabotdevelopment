@@ -46,14 +46,14 @@ $(document).ready(function() {
 		sText += "\n\t\"questions\" : [";
 		$('.questionsets').each(function() {
 			sText += "{\n";
-			sText += "\t\t\"Type\": \"" + $(this).find('input[name=qType]:checked').val() + "\",";
-			sText += "\n\t\t\"Text\": \"" + $(this).find('input[name=qText]').val() + "\",";
-			sText += "\n\t\t\"Correct\": \"" + $(this).find('input[name=Correct]').val() + "\",";
-			if ($(this).find('input[name="qType"]:checked').val()=="MC") {
-				sText += "\n\t\t\"Incorrect\": \"" + $(this).find('input[name=Incorrect]').val() + "\",";
+			sText += "\t\t\"Type\": \"" + $(this).find('input[name^=qType]:checked').val() + "\",";
+			sText += "\n\t\t\"Text\": \"" + $(this).find('input[name^=qText]').val() + "\",";
+			sText += "\n\t\t\"Correct\": \"" + $(this).find('input[name^=Correct]').val() + "\",";
+			if ($(this).find('input[name^="qType"]:checked').val()=="MC") {
+				sText += "\n\t\t\"Incorrect\": \"" + $(this).find('input[name^=Incorrect]').val() + "\",";
 			}
-			sText += "\n\t\t\"PV\": \"" + $(this).find('input[name=PV]').val() + "\",";
-			sText += "\n\t\t\"qNo\": \"" + $(this).find('input[name=qNo]').val() + "\""; // last item, no comma
+			sText += "\n\t\t\"PV\": \"" + $(this).find('input[name^=PV]').val() + "\",";
+			sText += "\n\t\t\"qNo\": \"" + $(this).find('input[name^=qNo]').val() + "\""; // last item, no comma
 			sText += "\n\t},"
 		});
 		
@@ -67,8 +67,15 @@ $(document).ready(function() {
 	
 	// Add question button
 	$('#addQuestion').click(function() {
-		$('#questionset').clone(true).find("input:text").val("").end().appendTo("#questions");
-		
+		var original = $('.questionsets:first');
+		var newDiv = original.clone(true,true);
+		newDiv.find('input').each(function(index,element){
+			this.name = this.name + $('.questionsets').length;
+			this.id = this.id + $('.questionsets').length;
+			$(this).parent('label').attr('for', this.id);
+		});
+		newDiv.find('input[type=text]').val("");
+		$('#questions').append(newDiv);
 	});
 	
 	// click to select

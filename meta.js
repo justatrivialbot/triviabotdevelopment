@@ -20,13 +20,22 @@ var dbcon = mysql.createConnection({
 
 var errorMsg = "";
 var warningMsg = "";
+var userCount;
 
 module.exports = {    // new quiz creation
     // verify that all mandatory fields are completed.
     testdata: function (obj) {
     	// The database requires a subreddit and scoring
+    	
     	if (obj.Subreddit == null) {
     		errorMsg += "You did not specify a Subreddit. ";
+    	} else {
+    		r.getSubreddit(obj.Subreddit).fetch().then(function(data) {
+    			userCount = data.active_user_count;
+    			if (userCount > 400) { // too much traffic!
+    				errorMsg += "That Subreddit is too busy for this bot right now."
+    			}
+    		});
     	}
     	
     	// Make sure every question has a type, a question, an answer, incorrect answers (if multiple choice), and a point value.
@@ -59,7 +68,7 @@ module.exports = {    // new quiz creation
     	
     	// if this is a timed quiz, make sure that the time deduction is not excessive 
     	// 
-    	if (obj.Scoring == 'Timed') {
+/*    	if (obj.Scoring == 'Timed') {
     		var totalquestions = obj.questions.length;
     		var totalPoints = 0;
     		for (var i = 0; i < totalquestions; i++) {
@@ -70,7 +79,7 @@ module.exports = {    // new quiz creation
     			warningMsg += "Your time deduction is very high! You might want to adjust it or your point values."
     		}
     	}
-    	
+    	*/
     	if (errorMsg.length > 0) {
     		return false; 
     	}
@@ -79,6 +88,7 @@ module.exports = {    // new quiz creation
     
     // format our DB fields and insert. Must be done as an async series because the questions depend on the existence of the quiz ID.
     createQuiz: function (an,obj) {
+    	console.log(obj);
     	var quizID;
     	var adminName = an;
 
@@ -92,6 +102,7 @@ module.exports = {    // new quiz creation
     	var game_type = 'FFA';
     	var randomize = 'Y';
     	var hpi = '';
+    	var score_viz = 'ADMIN';
     	
 //    	console.log(adminName);
     	if (obj.Subreddit != null) {
@@ -153,6 +164,12 @@ module.exports = {    // new quiz creation
     		var hpi = 'NULL';
     	}
 //    	console.log(hpi);
+    	
+    	if (['ADMIN','PLAYERS','PUBLIC'].indexOf(obj.ScoreViz.toUpperCase()) >=0) {
+    		var score_viz = obj.ScoreViz.toUpperCase();
+    	} else {
+    		var score_viz = 'ADMIN';
+    	}
    
     	var data = {
     		administrator: adminName,
@@ -164,7 +181,8 @@ module.exports = {    // new quiz creation
     		time_deduction: time_deduction,
     		game_type: game_type,
     		randomize: randomize,
-    		home_post_id: hpi
+    		home_post_id: hpi,
+    		score_viz: score_viz
     	};
     	
     		
@@ -448,28 +466,36 @@ module.exports = {    // new quiz creation
     }, // end abortQuiz
     
     scoreCheck: function(qID,authorName,msgID) {
-    	// this is a unique command as any redditor can use it, not just quiz admins.
-    	var scoreQuery = "SELECT reddit_username, score, time_sent, time_received FROM scores WHERE id_quizzes = ? ORDER BY score DESC";
-    	var curTime = generateStart();
-    	//console.log(qID);
-    	   	
-    	dbcon.query(scoreQuery, [qID], function(err, result) {
-    		dbcon.end();
+    	// Find out the scoreCheck permissions threshold, will be either Admins, Players or Public
+    	var vizPermission = false;
+    	var permsQuery = "SELECT administrator, score_viz FROM quizzes WHERE id_quizzes = ?";
+    	dbcon.query(permsQuery,[qID], function(err,result) {
     		if (err) throw err;
-        	var replyText = "**Scores for quiz #" + qID + "**\n\n";
-        	replyText += "Player | Score | Time (min)\n:--|:--|:--\n"
-        	var j = 1;
-        	var timeSent, timeReceived, timeElapsed;
-    		for (var i = 0; i < result.length; i++) {
-    			timeSent = new Date(result[i].time_sent).getTime() / 1000 ; // convert to seconds
-    			timeReceived = new Date(result[i].time_received).getTime() / 1000 ; // convert to seconds
-    			timeElapsed = (timeReceived - timeSent) / 60; // convert to minutes
-    			replyText += j + ") " + result[i].reddit_username + "|" + result[i].score + "|" + Math.round(timeElapsed) + "\n";
-    			j++;
-    		} // end forloop
-    		console.log(replyText);
-    		r.getMessage(msgID).reply(replyText);
-    	}); // end scoreQuery
+    		if (result[0].administrator == authorName) { // admins can always view
+    			pullScores(qID,authorName,msgID);
+    			console.log("Permission granted, you are admin.")
+    		} 
+    		
+    		if (result[0].score_viz == 'PUBLIC') { // everyone can view.
+    			pullScores(qID,authorName,msgID);
+    			console.log("Access open to all.")
+    		} 
+
+    		if (result[0].score_viz == 'PLAYERS') {
+    			// let's find out if they played the quiz.
+    			playerQuery = "SELECT id_scores FROM scores WHERE id_quizzes = ? AND reddit_username = ?";
+    			dbcon.query(playerQuery,[qID,authorName], function(err, result) {
+    				if (result.length > 0) {
+    					pullScores(qID,authorName,msgID);
+    					console.log("You've played this quiz, permission granted.");
+    				} else {
+    	    			replyText = "The quiz administrator only permits players to view scores.";
+    	    			r.getMessage(msgID).reply(replyText);
+    				}
+    			});
+    		}
+
+    	});
     	
     } // end scoreCheck
 
@@ -605,4 +631,28 @@ function shuffle(a) {
         a[j] = x;
     }
     return a;
+}
+
+function pullScores(qID,authorName,msgID) {
+	var scoreQuery = "SELECT reddit_username, score, time_sent, time_received FROM scores WHERE id_quizzes = ? ORDER BY score DESC";
+	var curTime = generateStart();
+	//console.log(qID);
+	   	
+	dbcon.query(scoreQuery, [qID], function(err, result) {
+		dbcon.end();
+		if (err) throw err;
+    	var replyText = "**Scores for quiz #" + qID + "**\n\n";
+    	replyText += "Player | Score | Time (min)\n:--|:--|:--\n"
+    	var j = 1;
+    	var timeSent, timeReceived, timeElapsed;
+		for (var i = 0; i < result.length; i++) {
+			timeSent = new Date(result[i].time_sent).getTime() / 1000 ; // convert to seconds
+			timeReceived = new Date(result[i].time_received).getTime() / 1000 ; // convert to seconds
+			timeElapsed = (timeReceived - timeSent) / 60; // convert to minutes
+			replyText += j + ") " + result[i].reddit_username + "|" + result[i].score + "|" + Math.round(timeElapsed) + "\n";
+			j++;
+		} // end forloop
+		console.log(replyText);
+		r.getMessage(msgID).reply(replyText);
+	}); // end scoreQuery
 }

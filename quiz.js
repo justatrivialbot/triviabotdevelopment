@@ -204,7 +204,19 @@ module.exports = {
 			}
 		}); // end query
 		
-	} // end scoreQuestions
+	}, // end scoreQuestions
+	
+	checkPlayerStatus: function(qid,authorName) {
+		queryPlayer = "SELECT id_scores FROM scores WHERE reddit_username = ? AND id_quizzes = ?";
+		dbcon.query(queryPlayer,[qid, authorName], function(err,result) {
+			if (err) throw err;
+			if (result.length > 0) {
+				return false;
+			} else {
+				return true;
+			}
+		});
+	}
 	
 } // end module.exports
 

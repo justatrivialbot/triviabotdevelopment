@@ -35,6 +35,7 @@ var msgID, body, authorName, subject, cleanedBody, bodyObj;
 
 checkMail();
 
+
 function checkMail() {
 	r.getUnreadMessages({options:{filter:"messages", limit:1}}).then(function(result){
 		for (var i = 0; i < result.length; i++) {
@@ -67,11 +68,9 @@ function parseData(data) {
     	
     	//verify that all criteria are correct
     	// testdata and createQuiz methods in meta.js
-    	if (meta.testdata(bodyObj[0])) {
-    		if (bodyObj.ID == "NULL") {
-    			meta.createQuiz(authorName,bodyObj[0]);
+    	if (meta.testdata(bodyObj)) {
+    			meta.createQuiz(authorName,bodyObj);
     			r.markMessagesAsRead([msgID]);
-    		}
     	} else {
     		console.log(errorMsg);
     	}
@@ -82,7 +81,12 @@ function parseData(data) {
 		// get the ID. the subject should be Quiz Me [ID]
 		var subjectParts = subject.split(" ");
 		var qID = subjectParts[2];
-		quiz.formatQuestions(qID, authorName,msgID);
+		if (quiz.checkPlayerStatus(qID,authorName)) {
+			quiz.formatQuestions(qID, authorName,msgID);
+		} else {
+			var replyText = "You have already taken that quiz.";
+			r.getMessage(msgID).reply(replyText);
+		}
 		r.markMessagesAsRead([msgID]);
 	} 
 	
